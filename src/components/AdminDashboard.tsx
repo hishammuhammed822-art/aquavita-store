@@ -303,15 +303,15 @@ function ProductsTab() {
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-sm font-semibold text-gradient-gold">${Number(product.price).toFixed(2)}</span>
+                      <span className="text-sm font-semibold text-gradient-gold">₹{Number(product.price).toFixed(2)}</span>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-sm text-muted">{product.meesho_price != null ? `$${Number(product.meesho_price).toFixed(2)}` : '—'}</span>
+                      <span className="text-sm text-muted">{product.meesho_price != null ? `₹${Number(product.meesho_price).toFixed(2)}` : '—'}</span>
                     </td>
                     <td className="px-4 py-4">
                       {profit != null ? (
                         <span className={`text-sm font-semibold ${profit > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          ${profit.toFixed(2)}
+                          ₹{profit.toFixed(2)}
                         </span>
                       ) : (
                         <span className="text-sm text-muted">—</span>
@@ -449,12 +449,12 @@ function ProductEditModal({
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Customer Price ($)</label>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Customer Price (₹)</label>
               <input type="number" step="0.01" min="0" required value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) || 0 })}
                 className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3 text-sm text-offwhite outline-none focus:border-gold/50" />
             </div>
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Meesho/Supplier Cost ($)</label>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Meesho/Supplier Cost (₹)</label>
               <input type="number" step="0.01" min="0" value={editing.meesho_price ?? 0} onChange={(e) => setEditing({ ...editing, meesho_price: parseFloat(e.target.value) || 0 })}
                 className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="0.00" />
             </div>
@@ -527,7 +527,7 @@ function ProductEditModal({
             <div className="flex items-center gap-2 rounded-sm border border-green-500/20 bg-green-500/5 px-4 py-3">
               <DollarSign className="h-4 w-4 text-green-400" />
               <span className="text-sm text-muted">
-                Profit Margin: <strong className="text-green-400">${(Number(editing.price) - Number(editing.meesho_price)).toFixed(2)}</strong>
+                Profit Margin: <strong className="text-green-400">₹{(Number(editing.price) - Number(editing.meesho_price)).toFixed(2)}</strong>
                 {' '}per unit
               </span>
             </div>
@@ -665,14 +665,14 @@ function OrdersTab() {
                             </a>
                           )}
                         </div>
-                        <span className="text-muted">${(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-muted">₹{(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
 
                   <div className="mt-3 flex items-center gap-4">
                     <span className="font-display text-lg font-bold text-gradient-gold">
-                      Total: ${Number(order.total_amount).toFixed(2)}
+                      Total: ₹{Number(order.total_amount).toFixed(2)}
                     </span>
                     <span className={`rounded-sm px-2 py-0.5 text-xs font-medium ${order.payment_method === 'upi' ? 'bg-aqua/15 text-aqua-light' : 'bg-gold/15 text-gold-light'}`}>
                       {order.payment_method === 'upi' ? 'UPI' : 'COD'}

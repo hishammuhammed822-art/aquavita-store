@@ -73,7 +73,7 @@ export function ProductGridCard({ product, onCardClick }: ProductGridCardProps) 
 
         <div className="mt-4 flex items-baseline gap-2">
           <span className="font-display text-2xl font-bold text-gradient-gold">
-            ${product.price.toFixed(2)}
+            ₹{product.price.toFixed(2)}
           </span>
         </div>
 

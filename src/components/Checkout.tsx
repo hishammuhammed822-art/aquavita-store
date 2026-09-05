@@ -155,12 +155,12 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
                       <p className="text-xs text-muted">Qty: {item.quantity}</p>
                     </div>
                   </div>
-                  <span className="font-semibold text-offwhite">${(item.product.price * item.quantity).toFixed(2)}</span>
+                  <span className="font-semibold text-offwhite">₹{(item.product.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
               <div className="mt-3 flex items-center justify-between border-t border-gold/10 pt-3">
                 <span className="text-sm font-medium text-muted">Total</span>
-                <span className="font-display text-xl font-bold text-gradient-gold">${totalPrice.toFixed(2)}</span>
+                <span className="font-display text-xl font-bold text-gradient-gold">₹{totalPrice.toFixed(2)}</span>
               </div>
             </div>
 
@@ -275,7 +275,7 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
 
                   {settings?.upi_id && (
                     <p className="mt-3 text-xs text-muted">
-                      Pay ${totalPrice.toFixed(2)} to the UPI ID above, then place your order. We'll verify payment before dispatch.
+                      Pay ₹{totalPrice.toFixed(2)} to the UPI ID above, then place your order. We'll verify payment before dispatch.
                     </p>
                   )}
                 </div>
@@ -286,7 +286,7 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
                 disabled={submitting}
                 className="flex w-full items-center justify-center gap-2 rounded-sm bg-gradient-to-r from-aqua to-aqua-light py-3.5 text-sm font-bold text-white transition-all hover:shadow-[0_0_30px_rgba(0,159,227,0.35)] disabled:opacity-60"
               >
-                {submitting ? 'Placing Order...' : `Place Order — $${totalPrice.toFixed(2)}`}
+                {submitting ? 'Placing Order...' : `Place Order — ₹${totalPrice.toFixed(2)}`}
               </button>
             </form>
           </div>

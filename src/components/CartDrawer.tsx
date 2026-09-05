@@ -74,7 +74,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                   />
                   <div className="flex flex-1 flex-col">
                     <h4 className="text-sm font-semibold text-offwhite">{item.product.name}</h4>
-                    <p className="mt-0.5 text-xs text-muted">${item.product.price.toFixed(2)}</p>
+                    <p className="mt-0.5 text-xs text-muted">₹{item.product.price.toFixed(2)}</p>
                     <div className="mt-auto flex items-center justify-between">
                       <div className="flex items-center border border-gold/25">
                         <button
@@ -118,7 +118,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
               <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm font-medium text-muted">Total</span>
                 <span className="font-display text-2xl font-semibold text-gradient-gold">
-                  ${totalPrice.toFixed(2)}
+                  ₹{totalPrice.toFixed(2)}
                 </span>
               </div>
               <button

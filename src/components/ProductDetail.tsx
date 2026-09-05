@@ -87,7 +87,7 @@ export function ProductDetail({ product, onClose }: ProductDetailProps) {
 
             <div className="mt-5 flex items-baseline gap-3">
               <span className="font-display text-3xl font-bold text-gradient-gold">
-                ${product.price.toFixed(2)}
+                ₹{product.price.toFixed(2)}
               </span>
               {outOfStock && (
                 <span className="text-sm font-semibold text-red-400">Currently Unavailable</span>
