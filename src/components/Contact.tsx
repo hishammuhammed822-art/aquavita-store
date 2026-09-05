@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Phone, Mail, MapPin, Instagram, Facebook, MessageCircle, Send } from 'lucide-react';
 import { Reveal } from '@/components/Reveal';
+import { useStoreSettings } from '@/store/StoreSettingsContext';
 
 export function Contact() {
+  const { settings } = useStoreSettings();
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -148,13 +150,15 @@ export function Contact() {
                 </span>
                 <div className="flex gap-3">
                   {[
-                    { icon: Instagram, label: 'Instagram', href: '#' },
-                    { icon: Facebook, label: 'Facebook', href: '#' },
-                    { icon: MessageCircle, label: 'WhatsApp', href: '#' },
+                    { icon: Instagram, label: 'Instagram', href: settings?.instagram_url || '#' },
+                    { icon: Facebook, label: 'Facebook', href: settings?.facebook_url || '#' },
+                    { icon: MessageCircle, label: 'WhatsApp', href: settings?.whatsapp_url || '#' },
                   ].map((social) => (
                     <a
                       key={social.label}
                       href={social.href}
+                      target={social.href !== '#' ? '_blank' : undefined}
+                      rel={social.href !== '#' ? 'noopener noreferrer' : undefined}
                       aria-label={social.label}
                       className="flex h-11 w-11 items-center justify-center rounded-sm border border-gold/25 text-gold transition-all duration-300 hover:border-gold hover:bg-gold/10 hover:shadow-[0_0_20px_rgba(217,163,33,0.15)]"
                     >

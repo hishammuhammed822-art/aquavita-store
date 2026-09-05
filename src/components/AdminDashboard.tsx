@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/AuthContext';
-import type { ProductRow, ProductCategory, StoreSettings, OrderRow } from '@/types';
+import { useStoreSettings } from '@/store/StoreSettingsContext';
+import type { ProductRow, ProductCategory, OrderRow } from '@/types';
 
 type Tab = 'products' | 'orders' | 'settings';
 
@@ -730,20 +731,10 @@ function OrdersTab() {
 /* ============ SETTINGS TAB ============ */
 
 function SettingsTab() {
-  const [settings, setSettings] = useState<StoreSettings | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { settings, loading, refresh } = useStoreSettings();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function load() {
-      const { data } = await supabase.from('store_settings').select('*').eq('id', 1).maybeSingle();
-      if (data) setSettings(data as StoreSettings);
-      setLoading(false);
-    }
-    load();
-  }, []);
 
   const handleSave = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -754,11 +745,11 @@ function SettingsTab() {
     const formData = new FormData(form);
 
     const payload = {
-      upi_id: formData.get('upi_id') || null,
-      qr_code_url: formData.get('qr_code_url') || null,
-      instagram_url: formData.get('instagram_url') || null,
-      facebook_url: formData.get('facebook_url') || null,
-      whatsapp_url: formData.get('whatsapp_url') || null,
+      upi_id: (formData.get('upi_id') as string) || null,
+      qr_code_url: (formData.get('qr_code_url') as string) || null,
+      instagram_url: (formData.get('instagram_url') as string) || null,
+      facebook_url: (formData.get('facebook_url') as string) || null,
+      whatsapp_url: (formData.get('whatsapp_url') as string) || null,
       updated_at: new Date().toISOString(),
     };
 
@@ -770,6 +761,7 @@ function SettingsTab() {
       return;
     }
 
+    await refresh();
     setSaved(true);
     setSaving(false);
     setTimeout(() => setSaved(false), 3000);

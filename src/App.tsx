@@ -90,7 +90,9 @@ function AppContent() {
   if (isAdmin) {
     return (
       <AuthProvider>
-        <AdminRoute />
+        <StoreSettingsProvider>
+          <AdminRoute />
+        </StoreSettingsProvider>
       </AuthProvider>
     );
   }
