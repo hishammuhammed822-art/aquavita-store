@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #050D12;
+    color: #F5F5F5;
+    font-family: 'Manrope', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Cormorant Garamond', serif;
+    line-height: 1.2;
+  }
+
+  ::selection {
+    background-color: rgba(0, 159, 227, 0.3);
+    color: #F5F5F5;
+  }
+}
+
+@layer utilities {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #F0C34A 0%, #D9A321 50%, #B8860B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-aqua {
+    background: linear-gradient(135deg, #00B8E6 0%, #009FE3 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .border-gradient-gold {
+    border-image: linear-gradient(135deg, #F0C34A, #D9A321, #B8860B) 1;
+  }
+
+  .glass-card {
+    background: rgba(11, 23, 29, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(217, 163, 33, 0.15);
+  }
+
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #D9A321 50%, transparent);
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050D12;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #009FE3, #0B171D);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00B8E6;
+}
+
+/* Reveal-on-scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.15s; }
+.reveal-delay-2 { transition-delay: 0.3s; }
+.reveal-delay-3 { transition-delay: 0.45s; }
+.reveal-delay-4 { transition-delay: 0.6s; }
