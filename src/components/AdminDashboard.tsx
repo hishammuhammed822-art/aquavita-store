@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import { useState, useEffect, useCallback, type FormEvent, type ChangeEvent } from 'react';
 import {
   Plus, Pencil, Trash2, X, LogOut, Droplet, Save, AlertCircle, Package, Search,
   Copy, ExternalLink, Clipboard, ShoppingCart, Settings, DollarSign, CheckCircle2,
-  Instagram, Facebook, MessageCircle, Truck,
+  Instagram, Facebook, MessageCircle, Truck, Upload, ImageIcon,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/auth/AuthContext';
 import { useStoreSettings } from '@/store/StoreSettingsContext';
 import type { ProductRow, ProductCategory, OrderRow } from '@/types';
+import { ProductImage } from '@/components/ProductImage';
 
 type Tab = 'products' | 'orders' | 'settings';
 
@@ -290,7 +291,7 @@ function ProductsTab() {
                   <tr key={product.id} className="border-b border-gold/10 transition-colors hover:bg-navy-800/30">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <img src={product.image_url} alt={product.name} className="h-12 w-12 rounded-sm border border-gold/15 object-cover" loading="lazy" />
+                        <ProductImage src={product.image_url} alt={product.name} className="h-12 w-12 rounded-sm border border-gold/15 object-cover" loading="lazy" />
                         <div>
                           <p className="text-sm font-semibold text-offwhite">{product.name}</p>
                           <p className="text-xs text-muted">{product.tagline}</p>
@@ -417,6 +418,38 @@ function ProductEditModal({
   onSave: (e: FormEvent<HTMLFormElement>) => void;
   saving: boolean;
 }) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadErr } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+    if (uploadErr) {
+      console.error('Image upload failed:', uploadErr);
+      setUploadError(uploadErr.message);
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(filePath);
+
+    setEditing({ ...editing, image_url: urlData.publicUrl });
+    setUploading(false);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-5">
       <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-sm" onClick={() => setEditing(null)} />
@@ -472,11 +505,39 @@ function ProductEditModal({
               <input type="number" min="0" required value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: parseInt(e.target.value) || 0 })}
                 className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3 text-sm text-offwhite outline-none focus:border-gold/50" />
             </div>
-            <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Image URL</label>
-              <input type="url" required value={editing.image_url ?? ''} onChange={(e) => setEditing({ ...editing, image_url: e.target.value })}
-                className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="https://images.pexels.com/..." />
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Product Image</label>
+            <div className="flex flex-col gap-3">
+              <label
+                className={`flex cursor-pointer items-center justify-center gap-2 rounded-sm border border-dashed border-gold/30 bg-navy-900/40 px-4 py-6 text-sm transition-all hover:border-gold/60 hover:bg-navy-900/70 ${uploading ? 'opacity-60' : ''}`}
+              >
+                <Upload className="h-5 w-5 text-gold" />
+                <span className="text-muted">
+                  {uploading ? 'Uploading...' : 'Click to upload from device'}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-muted" />
+                <input
+                  type="url"
+                  value={editing.image_url ?? ''}
+                  onChange={(e) => setEditing({ ...editing, image_url: e.target.value })}
+                  className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-2.5 text-sm text-offwhite outline-none focus:border-gold/50"
+                  placeholder="...or paste an image URL"
+                />
+              </div>
             </div>
+            {uploadError && (
+              <p className="mt-2 text-xs text-red-400">{uploadError}</p>
+            )}
+          </div>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -516,12 +577,16 @@ function ProductEditModal({
             </div>
           </div>
 
-          {editing.image_url && (
-            <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Preview</label>
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Preview</label>
+            {editing.image_url ? (
               <img src={editing.image_url} alt="Preview" className="h-32 w-32 rounded-sm border border-gold/15 object-cover" />
-            </div>
-          )}
+            ) : (
+              <div className="flex h-32 w-32 items-center justify-center rounded-sm border border-dashed border-gold/15 bg-navy-900/40">
+                <ImageIcon className="h-8 w-8 text-muted/50" />
+              </div>
+            )}
+          </div>
 
           {editing.meesho_price != null && editing.meesho_price > 0 && editing.price != null && (
             <div className="flex items-center gap-2 rounded-sm border border-green-500/20 bg-green-500/5 px-4 py-3">

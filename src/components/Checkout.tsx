@@ -4,6 +4,7 @@ import { useCart } from '@/cart/CartContext';
 import { useStoreSettings } from '@/store/StoreSettingsContext';
 import { supabase } from '@/lib/supabase';
 import type { OrderItem } from '@/types';
+import { ProductImage } from '@/components/ProductImage';
 
 interface CheckoutProps {
   isOpen: boolean;
@@ -57,8 +58,15 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
       .select('id')
       .maybeSingle();
 
-    if (insertError || !data) {
-      setError('Unable to place order. Please try again.');
+    if (insertError) {
+      console.error('Order insert failed:', insertError);
+      setError(`Order failed: ${insertError.message}${insertError.hint ? ` (${insertError.hint})` : ''}`);
+      setSubmitting(false);
+      return;
+    }
+    if (!data) {
+      console.error('Order insert returned no data');
+      setError('Order failed: no record was created. Please try again.');
       setSubmitting(false);
       return;
     }
@@ -149,7 +157,7 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
               {items.map((item) => (
                 <div key={item.product.id} className="flex items-center justify-between py-2 text-sm">
                   <div className="flex items-center gap-3">
-                    <img src={item.product.image} alt={item.product.name} className="h-10 w-10 rounded-sm border border-gold/15 object-cover" />
+                    <ProductImage src={item.product.image} alt={item.product.name} className="h-10 w-10 rounded-sm border border-gold/15 object-cover" />
                     <div>
                       <p className="font-medium text-offwhite">{item.product.name}</p>
                       <p className="text-xs text-muted">Qty: {item.quantity}</p>

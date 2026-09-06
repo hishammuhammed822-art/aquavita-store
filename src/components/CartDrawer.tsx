@@ -1,5 +1,6 @@
 import { X, Plus, Minus, Trash2, ShoppingBag, Truck } from 'lucide-react';
 import { useCart } from '@/cart/CartContext';
+import { ProductImage } from '@/components/ProductImage';
 
 interface CartDrawerProps {
   onCheckout: () => void;
@@ -66,7 +67,7 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
                   key={item.product.id}
                   className="mb-4 flex gap-4 border-b border-gold/10 pb-4"
                 >
-                  <img
+                  <ProductImage
                     src={item.product.image}
                     alt={item.product.name}
                     className="h-20 w-20 rounded-sm border border-gold/15 object-cover"

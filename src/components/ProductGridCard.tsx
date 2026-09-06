@@ -4,6 +4,7 @@ import type { Product } from '@/types';
 import { isOutOfStock } from '@/types';
 import { useCart } from '@/cart/CartContext';
 import { StarRating } from '@/components/StarRating';
+import { ProductImage } from '@/components/ProductImage';
 
 interface ProductGridCardProps {
   product: Product;
@@ -42,7 +43,7 @@ export function ProductGridCard({ product, onCardClick }: ProductGridCardProps) 
           </span>
         )}
         <div className="relative aspect-[4/3] overflow-hidden">
-          <img
+          <ProductImage
             src={product.image}
             alt={product.name}
             className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${outOfStock ? 'grayscale opacity-60' : ''}`}

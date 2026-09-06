@@ -4,6 +4,7 @@ import type { Product } from '@/types';
 import { isOutOfStock } from '@/types';
 import { useCart } from '@/cart/CartContext';
 import { StarRating } from '@/components/StarRating';
+import { ProductImage } from '@/components/ProductImage';
 
 interface ProductDetailProps {
   product: Product | null;
@@ -47,7 +48,7 @@ export function ProductDetail({ product, onClose }: ProductDetailProps) {
         <div className="grid md:grid-cols-2">
           {/* Image */}
           <div className="relative overflow-hidden bg-navy-900">
-            <img
+            <ProductImage
               src={product.image}
               alt={product.name}
               className={`h-full max-h-[400px] w-full object-cover md:min-h-[500px] ${outOfStock ? 'grayscale opacity-60' : ''}`}
