@@ -189,7 +189,7 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">Phone Number</label>
-                  <input name="phone" type="tel" required className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-2.5 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="+1 234 567 890" />
+                  <input name="phone" type="tel" required className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-2.5 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="+91 98765 43210" />
                 </div>
               </div>
 
