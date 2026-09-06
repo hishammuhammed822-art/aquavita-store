@@ -21,6 +21,10 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const COD_CHARGE = 100;
+  const paymentCharge = paymentMethod === 'cod' ? COD_CHARGE : 0;
+  const grandTotal = totalPrice + paymentCharge;
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -48,7 +52,7 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
       pincode: formData.get('pincode') || null,
       payment_method: paymentMethod,
       items: JSON.stringify(orderItems),
-      total_amount: totalPrice,
+      total_amount: grandTotal,
       status: 'pending',
     };
 
@@ -166,9 +170,21 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
                   <span className="font-semibold text-offwhite">₹{(item.product.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
-              <div className="mt-3 flex items-center justify-between border-t border-gold/10 pt-3">
-                <span className="text-sm font-medium text-muted">Total</span>
-                <span className="font-display text-xl font-bold text-gradient-gold">₹{totalPrice.toFixed(2)}</span>
+              <div className="mt-3 space-y-2 border-t border-gold/10 pt-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted">Subtotal</span>
+                  <span className="text-sm font-semibold text-offwhite">₹{totalPrice.toFixed(2)}</span>
+                </div>
+                {paymentMethod === 'cod' && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted">COD Charge</span>
+                    <span className="text-sm font-semibold text-gold-light">₹{COD_CHARGE.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between border-t border-gold/10 pt-2">
+                  <span className="text-sm font-bold text-offwhite">Total</span>
+                  <span className="font-display text-xl font-bold text-gradient-gold">₹{grandTotal.toFixed(2)}</span>
+                </div>
               </div>
             </div>
 
@@ -283,7 +299,7 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
 
                   {settings?.upi_id && (
                     <p className="mt-3 text-xs text-muted">
-                      Pay ₹{totalPrice.toFixed(2)} to the UPI ID above, then place your order. We'll verify payment before dispatch.
+                      Pay ₹{grandTotal.toFixed(2)} to the UPI ID above, then place your order. We'll verify payment before dispatch.
                     </p>
                   )}
                 </div>
@@ -294,7 +310,7 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
                 disabled={submitting}
                 className="flex w-full items-center justify-center gap-2 rounded-sm bg-gradient-to-r from-aqua to-aqua-light py-3.5 text-sm font-bold text-white transition-all hover:shadow-[0_0_30px_rgba(0,159,227,0.35)] disabled:opacity-60"
               >
-                {submitting ? 'Placing Order...' : `Place Order — ₹${totalPrice.toFixed(2)}`}
+                {submitting ? 'Placing Order...' : `Place Order — ₹${grandTotal.toFixed(2)}`}
               </button>
             </form>
           </div>
