@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { X, Truck, CreditCard, Smartphone, CheckCircle2, Copy, AlertCircle } from 'lucide-react';
+import { X, Truck, CreditCard, Smartphone, CheckCircle2, Copy, AlertCircle, MapPin } from 'lucide-react';
 import { useCart } from '@/cart/CartContext';
 import { useStoreSettings } from '@/store/StoreSettingsContext';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +20,13 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [selectedCity, setSelectedCity] = useState('');
+
+  const KERALA_CITIES = [
+    'Thiruvananthapuram', 'Kollam', 'Pathanamthitta', 'Alappuzha',
+    'Kottayam', 'Idukki', 'Ernakulam', 'Thrissur', 'Palakkad',
+    'Malappuram', 'Kozhikode', 'Wayanad', 'Kannur', 'Kasaragod',
+  ];
 
   const COD_CHARGE = 100;
   const paymentCharge = paymentMethod === 'cod' ? COD_CHARGE : 0;
@@ -43,12 +50,14 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
       supplier_link: item.product.supplierLink ?? null,
     }));
 
+    const rawAddress = (formData.get('address') as string) || '';
+    const fullAddress = selectedCity ? `${rawAddress}, ${selectedCity}` : rawAddress;
+
     const payload = {
       customer_name: formData.get('name'),
       customer_phone: formData.get('phone'),
       customer_email: formData.get('email') || null,
-      shipping_address: formData.get('address'),
-      city: formData.get('city') || null,
+      shipping_address: fullAddress,
       pincode: formData.get('pincode') || null,
       payment_method: paymentMethod,
       items: JSON.stringify(orderItems),
@@ -221,12 +230,25 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">City</label>
-                  <input name="city" type="text" className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-2.5 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="Mumbai" />
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">City / District</label>
+                  <div className="relative">
+                    <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                    <select
+                      value={selectedCity}
+                      onChange={(e) => setSelectedCity(e.target.value)}
+                      required
+                      className="w-full appearance-none rounded-sm border border-gold/20 bg-navy-900/60 py-2.5 pl-10 pr-4 text-sm text-offwhite outline-none focus:border-gold/50"
+                    >
+                      <option value="" disabled>Select your city</option>
+                      {KERALA_CITIES.map((city) => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">Pincode</label>
-                  <input name="pincode" type="text" className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-2.5 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="400001" />
+                  <input name="pincode" type="text" className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-2.5 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="695001" />
                 </div>
               </div>
 
