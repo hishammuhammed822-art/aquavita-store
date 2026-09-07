@@ -6,6 +6,7 @@ export interface Product {
   tagline: string;
   description: string;
   price: number;
+  mrp?: number;
   image: string;
   badge?: string | null;
   stock?: number;
@@ -23,6 +24,7 @@ export interface ProductRow {
   tagline: string;
   description: string;
   price: number;
+  mrp: number;
   image_url: string;
   badge: string | null;
   stock: number;
@@ -43,6 +45,7 @@ export function productRowToProduct(row: ProductRow): Product {
     tagline: row.tagline,
     description: row.description,
     price: Number(row.price),
+    mrp: row.mrp != null ? Number(row.mrp) : 0,
     image: row.image_url,
     badge: row.badge,
     stock: row.stock,
@@ -83,6 +86,7 @@ export interface OrderRow {
   total_amount: number;
   status: string;
   created_at: string;
+  payment_screenshot_url: string | null;
 }
 
 export interface OrderItem {

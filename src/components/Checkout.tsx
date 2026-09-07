@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { X, Truck, CreditCard, Smartphone, CheckCircle2, Copy, AlertCircle, MapPin } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { X, Truck, CreditCard, Smartphone, CheckCircle2, Copy, AlertCircle, MapPin, Upload, ImageIcon } from 'lucide-react';
 import { useCart } from '@/cart/CartContext';
 import { useStoreSettings } from '@/store/StoreSettingsContext';
 import { supabase } from '@/lib/supabase';
@@ -21,6 +22,9 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [selectedCity, setSelectedCity] = useState('');
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [uploadingScreenshot, setUploadingScreenshot] = useState(false);
 
   const KERALA_CITIES = [
     'Thiruvananthapuram', 'Kollam', 'Pathanamthitta', 'Alappuzha',
@@ -34,10 +38,44 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
 
   if (!isOpen) return null;
 
+  const upiId = settings?.upi_id || 'YOUR_UPI_ID_HERE';
+  const upiPaymentString = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=AQUAVITA&am=${grandTotal.toFixed(2)}&cu=INR&tn=AQUAVITA Order`;
+
+  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScreenshotFile(file);
+    setScreenshotPreview(URL.createObjectURL(file));
+  };
+
+  const uploadScreenshot = async (): Promise<string | null> => {
+    if (!screenshotFile) return null;
+    setUploadingScreenshot(true);
+    const fileExt = screenshotFile.name.split('.').pop();
+    const fileName = `screenshots/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
+    const { error: uploadErr } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, screenshotFile, { cacheControl: '3600', upsert: false });
+    if (uploadErr) {
+      console.error('Screenshot upload failed:', uploadErr);
+      setUploadingScreenshot(false);
+      throw new Error(`Screenshot upload failed: ${uploadErr.message}`);
+    }
+    const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+    setUploadingScreenshot(false);
+    return urlData.publicUrl;
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+
+    if (paymentMethod === 'upi' && !screenshotFile) {
+      setError('Please upload a payment screenshot to place an online order.');
+      setSubmitting(false);
+      return;
+    }
 
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
@@ -53,6 +91,17 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
     const rawAddress = (formData.get('address') as string) || '';
     const fullAddress = selectedCity ? `${rawAddress}, ${selectedCity}` : rawAddress;
 
+    let screenshotUrl: string | null = null;
+    if (paymentMethod === 'upi' && screenshotFile) {
+      try {
+        screenshotUrl = await uploadScreenshot();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to upload screenshot.');
+        setSubmitting(false);
+        return;
+      }
+    }
+
     const payload = {
       customer_name: formData.get('name'),
       customer_phone: formData.get('phone'),
@@ -63,6 +112,7 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
       items: JSON.stringify(orderItems),
       total_amount: grandTotal,
       status: 'pending',
+      payment_screenshot_url: screenshotUrl,
     };
 
     const { data, error: insertError } = await supabase
@@ -88,20 +138,22 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
     setSuccess(true);
     setSubmitting(false);
     clearCart();
+    setScreenshotFile(null);
+    setScreenshotPreview(null);
   };
 
   const handleCopyUpi = () => {
-    if (settings?.upi_id) {
-      navigator.clipboard.writeText(settings.upi_id);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    navigator.clipboard.writeText(upiId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleClose = () => {
     setSuccess(false);
     setOrderId(null);
     setError(null);
+    setScreenshotFile(null);
+    setScreenshotPreview(null);
     onClose();
   };
 
@@ -286,50 +338,87 @@ export function Checkout({ isOpen, onClose }: CheckoutProps) {
               {/* UPI payment details */}
               {paymentMethod === 'upi' && (
                 <div className="rounded-sm border border-aqua/25 bg-aqua/5 p-5">
-                  <h4 className="mb-3 text-sm font-bold text-offwhite">UPI Payment Details</h4>
+                  <h4 className="mb-3 text-sm font-bold text-offwhite">UPI Payment</h4>
 
-                  {settings?.qr_code_url ? (
-                    <div className="mb-4 flex justify-center">
-                      <img
-                        src={settings.qr_code_url}
-                        alt="UPI QR Code"
-                        className="h-48 w-48 rounded-sm border border-gold/20 bg-white p-2"
+                  {/* Dynamic QR Code */}
+                  <div className="mb-4 flex flex-col items-center gap-3">
+                    <div className="rounded-sm border border-gold/20 bg-white p-3">
+                      <QRCodeSVG
+                        value={upiPaymentString}
+                        size={180}
+                        level="M"
+                        bgColor="#ffffff"
+                        fgColor="#0f172a"
                       />
                     </div>
-                  ) : null}
+                    <p className="text-center text-xs text-muted">
+                      Scan this QR code with any UPI app to pay <strong className="text-offwhite">₹{grandTotal.toFixed(2)}</strong>.
+                      The amount is pre-filled.
+                    </p>
+                  </div>
 
-                  {settings?.upi_id ? (
-                    <div className="flex items-center justify-between rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3">
-                      <div>
-                        <span className="block text-xs uppercase tracking-wider text-muted">UPI ID</span>
-                        <span className="text-sm font-semibold text-offwhite">{settings.upi_id}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleCopyUpi}
-                        className="flex items-center gap-1.5 rounded-sm border border-aqua/40 px-3 py-2 text-xs font-semibold text-aqua-light transition-all hover:border-aqua hover:bg-aqua/10"
-                      >
-                        {copied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                        {copied ? 'Copied!' : 'Copy'}
-                      </button>
+                  {/* UPI ID copy */}
+                  <div className="flex items-center justify-between rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3">
+                    <div>
+                      <span className="block text-xs uppercase tracking-wider text-muted">UPI ID</span>
+                      <span className="text-sm font-semibold text-offwhite">{upiId}</span>
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted">
-                      UPI payment details will be available soon. Please choose Cash on Delivery for now.
-                    </p>
-                  )}
+                    <button
+                      type="button"
+                      onClick={handleCopyUpi}
+                      className="flex items-center gap-1.5 rounded-sm border border-aqua/40 px-3 py-2 text-xs font-semibold text-aqua-light transition-all hover:border-aqua hover:bg-aqua/10"
+                    >
+                      {copied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      {copied ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
 
-                  {settings?.upi_id && (
-                    <p className="mt-3 text-xs text-muted">
-                      Pay ₹{grandTotal.toFixed(2)} to the UPI ID above, then place your order. We'll verify payment before dispatch.
-                    </p>
-                  )}
+                  {/* Payment screenshot upload */}
+                  <div className="mt-4">
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gold">Upload Payment Screenshot *</label>
+                    <div className="flex items-center gap-4">
+                      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-gold/30 bg-navy-900/40 px-6 py-5 text-sm transition-all hover:border-gold/60 hover:bg-navy-900/70">
+                        <Upload className="h-5 w-5 text-gold" />
+                        <span className="text-muted">{uploadingScreenshot ? 'Uploading...' : 'Choose file'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleScreenshotChange}
+                          disabled={uploadingScreenshot}
+                          className="hidden"
+                        />
+                      </label>
+                      {screenshotPreview && (
+                        <div className="relative">
+                          <img
+                            src={screenshotPreview}
+                            alt="Payment screenshot"
+                            className="h-20 w-20 rounded-sm border border-gold/20 object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => { setScreenshotFile(null); setScreenshotPreview(null); }}
+                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white"
+                            aria-label="Remove screenshot"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {!screenshotFile && (
+                      <p className="mt-2 flex items-center gap-1.5 text-xs text-gold-light">
+                        <ImageIcon className="h-3.5 w-3.5" />
+                        A payment screenshot is required for online orders.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || uploadingScreenshot}
                 className="flex w-full items-center justify-center gap-2 rounded-sm bg-gradient-to-r from-aqua to-aqua-light py-3.5 text-sm font-bold text-white transition-all hover:shadow-[0_0_30px_rgba(0,159,227,0.35)] disabled:opacity-60"
               >
                 {submitting ? 'Placing Order...' : `Place Order — ₹${grandTotal.toFixed(2)}`}

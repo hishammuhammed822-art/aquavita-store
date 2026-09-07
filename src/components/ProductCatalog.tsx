@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Search } from 'lucide-react';
 import { Reveal } from '@/components/Reveal';
 import { ProductGridCard } from '@/components/ProductGridCard';
 import { ProductDetail } from '@/components/ProductDetail';
@@ -23,6 +24,7 @@ export function ProductCatalog({ activeCategory, onCategoryChange }: ProductCata
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     async function loadProducts() {
@@ -44,9 +46,18 @@ export function ProductCatalog({ activeCategory, onCategoryChange }: ProductCata
   }, []);
 
   const filteredProducts = useMemo(() => {
-    if (activeCategory === 'all') return products;
-    return products.filter((p) => p.category === activeCategory);
-  }, [products, activeCategory]);
+    let result = products;
+    if (activeCategory !== 'all') {
+      result = result.filter((p) => p.category === activeCategory);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [products, activeCategory, searchQuery]);
 
   return (
     <section id="products" className="relative border-t border-gold/10 bg-navy-800 py-20 lg:py-28">
@@ -65,6 +76,22 @@ export function ProductCatalog({ activeCategory, onCategoryChange }: ProductCata
           <h2 className="font-display text-3xl font-bold text-offwhite sm:text-4xl lg:text-5xl">
             EXPLORE <span className="text-gradient-gold">OUR COLLECTION</span>
           </h2>
+        </Reveal>
+
+        {/* Search bar */}
+        <Reveal delay={1}>
+          <div className="mx-auto mb-10 max-w-md">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products by name or category..."
+                className="w-full rounded-sm border border-gold/20 bg-navy-900/60 py-3 pl-11 pr-4 text-sm text-offwhite placeholder-muted/60 outline-none focus:border-gold/50"
+              />
+            </div>
+          </div>
         </Reveal>
 
         {/* Filter tabs */}

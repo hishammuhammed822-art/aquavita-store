@@ -72,10 +72,20 @@ export function ProductGridCard({ product, onCardClick }: ProductGridCardProps) 
           {product.description}
         </p>
 
-        <div className="mt-4 flex items-baseline gap-2">
+        <div className="mt-4 flex flex-wrap items-baseline gap-2">
           <span className="font-display text-2xl font-bold text-gradient-gold">
             ₹{product.price.toFixed(2)}
           </span>
+          {product.mrp != null && product.mrp > product.price && (
+            <>
+              <span className="text-sm text-muted line-through">
+                ₹{product.mrp.toFixed(2)}
+              </span>
+              <span className="rounded-sm bg-green-500/15 px-2 py-0.5 text-[10px] font-bold uppercase text-green-400">
+                {Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF
+              </span>
+            </>
+          )}
         </div>
 
         {/* Quantity + buttons */}

@@ -86,10 +86,20 @@ export function ProductDetail({ product, onClose }: ProductDetailProps) {
               {product.description}
             </p>
 
-            <div className="mt-5 flex items-baseline gap-3">
+            <div className="mt-5 flex flex-wrap items-baseline gap-3">
               <span className="font-display text-3xl font-bold text-gradient-gold">
                 ₹{product.price.toFixed(2)}
               </span>
+              {product.mrp != null && product.mrp > product.price && (
+                <>
+                  <span className="text-base text-muted line-through">
+                    ₹{product.mrp.toFixed(2)}
+                  </span>
+                  <span className="rounded-sm bg-green-500/15 px-2.5 py-1 text-xs font-bold uppercase text-green-400">
+                    {Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF
+                  </span>
+                </>
+              )}
               {outOfStock && (
                 <span className="text-sm font-semibold text-red-400">Currently Unavailable</span>
               )}

@@ -19,6 +19,7 @@ const EMPTY_PRODUCT: EditingProduct = {
   tagline: '',
   description: '',
   price: 0,
+  mrp: 0,
   image_url: '',
   badge: '',
   stock: 0,
@@ -138,6 +139,7 @@ function ProductsTab() {
       tagline: editing.tagline,
       description: editing.description,
       price: Number(editing.price),
+      mrp: Number(editing.mrp) || 0,
       image_url: editing.image_url,
       badge: editing.badge || null,
       stock: Number(editing.stock),
@@ -480,18 +482,30 @@ function ProductEditModal({
               className="w-full resize-none rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="Product description..." />
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-3">
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Customer Price (₹)</label>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">MRP (₹)</label>
+              <input type="number" step="0.01" min="0" required value={editing.mrp ?? 0} onChange={(e) => setEditing({ ...editing, mrp: parseFloat(e.target.value) || 0 })}
+                className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="0.00" />
+            </div>
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Selling Price (₹)</label>
               <input type="number" step="0.01" min="0" required value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) || 0 })}
                 className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3 text-sm text-offwhite outline-none focus:border-gold/50" />
             </div>
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Meesho/Supplier Cost (₹)</label>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Supplier Cost (₹)</label>
               <input type="number" step="0.01" min="0" value={editing.meesho_price ?? 0} onChange={(e) => setEditing({ ...editing, meesho_price: parseFloat(e.target.value) || 0 })}
                 className="w-full rounded-sm border border-gold/20 bg-navy-900/60 px-4 py-3 text-sm text-offwhite outline-none focus:border-gold/50" placeholder="0.00" />
             </div>
           </div>
+          {editing.mrp != null && editing.mrp > 0 && editing.price != null && editing.price > 0 && editing.mrp > editing.price && (
+            <div className="flex items-center gap-2 rounded-sm border border-green-500/20 bg-green-500/5 px-4 py-3">
+              <span className="text-sm text-muted">
+                Discount: <strong className="text-green-400">{Math.round(((Number(editing.mrp) - Number(editing.price)) / Number(editing.mrp)) * 100)}% OFF</strong>
+              </span>
+            </div>
+          )}
 
           <div>
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">Meesho / Supplier Product Link</label>
